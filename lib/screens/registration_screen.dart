@@ -3,7 +3,7 @@ import 'package:flash_chat_flutter/constants.dart';
 import 'package:flash_chat_flutter/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:modal_progress_hud/modal_progress_hud.dart';
+import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
 
 class RegistrationScreen extends StatefulWidget {
   static const String id = 'registration_screen';
@@ -32,11 +32,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Hero(
-                tag: 'logo',
-                child: SizedBox(
-                  height: 200.0,
-                  child: Image.asset('images/logo.png'),
+              Flexible(
+                child: Hero(
+                  tag: 'logo',
+                  child: SizedBox(
+                    height: 200.0,
+                    child: Image.asset('images/logo.png'),
+                  ),
                 ),
               ),
               const SizedBox(
@@ -70,9 +72,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 colour: Colors.blueAccent,
                 title: 'Register',
                 onPressed: () async {
-                  setState(() {
-                    showSpinner = true;
-                  });
+                  setState(
+                    () {
+                      showSpinner = true;
+                    },
+                  );
                   try {
                     final newUser = await _auth.createUserWithEmailAndPassword(
                         email: email, password: password);
@@ -80,9 +84,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   } catch (e) {
                     print(e);
                   } finally {
-                    setState(() {
-                      showSpinner = false;
-                    });
+                    setState(
+                      () {
+                        showSpinner = false;
+                      },
+                    );
                   }
                 },
               ),
