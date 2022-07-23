@@ -33,7 +33,10 @@ class _ChatScreenState extends State<ChatScreen> {
         leading: null,
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () async {
+              await _auth.signOut();
+              Navigator.pop(context);
+            },
             icon: const Icon(Icons.close),
           ),
         ],
