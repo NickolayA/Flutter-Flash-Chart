@@ -1,10 +1,10 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flash_chat_flutter/constants.dart';
+import 'package:flash_chat_flutter/models/message.dart';
+import 'package:flash_chat_flutter/services/auth.dart';
+import 'package:flash_chat_flutter/services/store.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-final _firestore = FirebaseFirestore.instance;
-late final User? loggedInUser;
+import 'package:provider/provider.dart';
 
 class ChatScreen extends StatefulWidget {
   static const String id = 'chat_screen';
@@ -17,38 +17,20 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final messageTextController = TextEditingController();
-  final _auth = FirebaseAuth.instance;
   String messageText = '';
 
   @override
-  void initState() {
-    super.initState();
-
-    getCurrentUser();
-  }
-
-  void getCurrentUser() {
-    loggedInUser = _auth.currentUser;
-  }
-
-  void messagesStream() async {
-    await for (final snapshot
-        in _firestore.collection('messages').snapshots()) {
-      for (final message in snapshot.docs) {
-        print(message.data());
-      }
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<BaseAuth>(context);
+    final storeService = Provider.of<BaseStore>(context);
+
     return Scaffold(
       appBar: AppBar(
         leading: null,
         actions: [
           IconButton(
             onPressed: () async {
-              await _auth.signOut();
+              await authService.signOut();
               Navigator.pop(context);
             },
             icon: const Icon(Icons.close),
@@ -78,15 +60,15 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {
-                      print('hello world ${loggedInUser!.email}');
+                    onPressed: () async {
                       messageTextController.clear();
-                      _firestore.collection('messages').add(
-                        {
-                          'text': messageText,
-                          'sender': loggedInUser!.email,
-                        },
+
+                      final newMessage = Message(
+                        text: messageText,
+                        sender: authService.loggedUser!.email!,
                       );
+
+                      await storeService.addMessage(newMessage);
                     },
                     child: const Text(
                       'Send',
@@ -110,38 +92,40 @@ class MessagesStream extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<BaseAuth>(context);
+    final storeService = Provider.of<BaseStore>(context);
+
     return StreamBuilder<QuerySnapshot>(
-      stream: _firestore.collection('messages').snapshots(),
+      stream: storeService.messagesSnapshots,
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           final messages = snapshot.data!.docs.reversed;
           List<MessageBubble> messageBubbles = [];
-          for (final message in messages) {
-            final messageData = message.data()! as Map<String, dynamic>;
+          for (var msg in messages) {
+            final message =
+                Message.fromJson(msg.data()! as Map<String, dynamic>);
 
-            final messageText = messageData['text'];
-            final messageSender = messageData['sender'];
-
-            final currentUser = loggedInUser!.email;
+            final currentUser = authService.loggedUser!.email;
 
             final messageBubble = MessageBubble(
-              text: messageText,
-              sender: messageSender,
-              isMe: currentUser == messageSender,
+              text: message.text,
+              sender: message.sender,
+              isMe: currentUser == message.sender,
             );
 
             messageBubbles.add(messageBubble);
-
-            return Expanded(
-              child: ListView(
-                reverse: true,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10.0, vertical: 20.0),
-                children: messageBubbles,
-              ),
-            );
           }
+
+          return Expanded(
+            child: ListView(
+              reverse: true,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 10.0, vertical: 20.0),
+              children: messageBubbles,
+            ),
+          );
         }
+
         return const Center(
           child: CircularProgressIndicator(
             backgroundColor: Colors.lightBlueAccent,
