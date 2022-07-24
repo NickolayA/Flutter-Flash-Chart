@@ -3,6 +3,7 @@ import 'package:flash_chat_flutter/screens/chat_screen.dart';
 import 'package:flash_chat_flutter/screens/login_screen.dart';
 import 'package:flash_chat_flutter/screens/registration_screen.dart';
 import 'package:flash_chat_flutter/services/auth.dart';
+import 'package:flash_chat_flutter/services/store.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -19,8 +20,15 @@ class FlashChat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Provider<BaseAuth>(
-      create: (context) => EmailPasswordAuth(),
+    return MultiProvider(
+      providers: [
+        Provider<BaseAuth>(
+          create: (context) => EmailPasswordAuth(),
+        ),
+        Provider<BaseStore>(
+          create: (context) => Firestore(),
+        ),
+      ],
       child: MaterialApp(
         home: const WelcomeScreen(),
         initialRoute: WelcomeScreen.id,
