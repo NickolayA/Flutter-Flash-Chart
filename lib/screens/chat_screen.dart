@@ -79,11 +79,12 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   TextButton(
                     onPressed: () {
+                      print('hello world ${loggedInUser!.email}');
                       messageTextController.clear();
                       _firestore.collection('messages').add(
                         {
                           'text': messageText,
-                          'sender': loggedInUser?.email ?? 'anonymous',
+                          'sender': loggedInUser!.email,
                         },
                       );
                     },

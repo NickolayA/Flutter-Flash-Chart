@@ -1,5 +1,6 @@
 import 'package:flash_chat_flutter/components/rounded_button.dart';
 import 'package:flash_chat_flutter/constants.dart';
+import 'package:flash_chat_flutter/mixins/toggle_spinner_mixin.dart';
 import 'package:flash_chat_flutter/screens/chat_screen.dart';
 import 'package:flash_chat_flutter/services/auth.dart';
 import 'package:flutter/material.dart';
@@ -15,17 +16,10 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  bool showSpinner = false;
-
+class _LoginScreenState extends State<LoginScreen>
+    with ToggleSpinnerMixin<LoginScreen> {
   String email = '';
   String password = '';
-
-  void toggleSpinner() {
-    setState(() {
-      showSpinner = !showSpinner;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
