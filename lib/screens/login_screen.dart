@@ -1,9 +1,10 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flash_chat_flutter/components/rounded_button.dart';
 import 'package:flash_chat_flutter/constants.dart';
 import 'package:flash_chat_flutter/screens/chat_screen.dart';
+import 'package:flash_chat_flutter/services/auth.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   static const String id = 'login_screen';
@@ -16,13 +17,20 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool showSpinner = false;
-  final _auth = FirebaseAuth.instance;
 
   String email = '';
   String password = '';
 
+  void toggleSpinner() {
+    setState(() {
+      showSpinner = !showSpinner;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<BaseAuth>(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: ModalProgressHUD(
@@ -73,22 +81,16 @@ class _LoginScreenState extends State<LoginScreen> {
                 colour: Colors.lightBlueAccent,
                 title: 'Log In',
                 onPressed: () async {
-                  setState(() {
-                    showSpinner = true;
-                  });
-                  try {
-                    final userCred = await _auth.signInWithEmailAndPassword(
-                        email: email, password: password);
-                    if (userCred.user != null) {
-                      await Navigator.pushNamed(context, ChatScreen.id);
-                    }
-                  } catch (e) {
-                    print(e);
-                  } finally {
-                    setState(() {
-                      showSpinner = false;
-                    });
+                  toggleSpinner();
+
+                  final userCred =
+                      await authService.login(email: email, password: password);
+
+                  if (userCred?.user != null) {
+                    await Navigator.pushNamed(context, ChatScreen.id);
                   }
+
+                  toggleSpinner();
                 },
               ),
             ],
